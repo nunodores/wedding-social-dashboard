@@ -3,7 +3,20 @@ import { sequelize } from '../database';
 import { Guest } from './guest';
 import { Post } from './post';
 
-export class Notification extends Model {}
+export class Notification extends Model {
+  public id!: string;
+  public to_guest_id!: string;
+  public from_guest_id?: string | null;
+  public post_id?: string | null;
+  public type!: 'like' | 'comment' | 'follow' | 'mention';
+  public read_post!: boolean;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+
+  // Associations
+  public from?: Guest;
+  public post?: Post;
+}
 
 Notification.init({
   id: { type: DataTypes.STRING(191), primaryKey: true },

@@ -3,15 +3,26 @@ import { sequelize } from '../database';
 import { Guest } from './guest';
 import { Post } from './post';
 
-export class Comment extends Model {}
+export class Comment extends Model {
+  public id!: string;
+  public content!: string;
+  public guest_id!: string;
+  public post_id!: string;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+
+  // Associations
+  public guest?: Guest;
+  public post?: Post;
+}
 
 Comment.init({
   id: { type: DataTypes.STRING(191), primaryKey: true },
   content: { type: DataTypes.TEXT, allowNull: false },
   guest_id: { type: DataTypes.STRING(191), allowNull: false },
   post_id: { type: DataTypes.STRING(191), allowNull: false },
-  createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+  createdAt: { type: DataTypes.DATE(3), defaultValue: DataTypes.NOW },
+  updatedAt: { type: DataTypes.DATE(3), defaultValue: DataTypes.NOW },
 }, {
   sequelize,
   modelName: 'comment',

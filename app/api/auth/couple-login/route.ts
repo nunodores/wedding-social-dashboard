@@ -3,6 +3,7 @@ import { generateToken } from '@/lib/auth';
 import { EventService } from '@/lib/services/eventService';
 import { UserService } from '@/lib/services/userService';
 import { initializeDatabase } from '@/lib/db-init';
+import { compare, hash } from 'bcryptjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,30 +18,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid event code' }, { status: 401 });
     }
     console.log('====================================');
-    console.log(event.dataValues);
+    console.log(event);
     console.log('====================================');
-    const user = await UserService.findByEmail(event.dataValues.user.email);
-    if (!user || !(await require('bcryptjs').compare(password, user.dataValues.password_hash))) {
+    const user = await UserService.findByEmail(event.user?.email || "");
+    console.log('====================================');
+    console.log("user");
+    console.log(user);
+    console.log(user?.password_hash);
+    console.log(password);
+    
+    console.log('====================================');
+    const isPasswordValid = await compare(password, user?.password_hash || "");
+    console.log(isPasswordValid);
+    
+    if (!user || !isPasswordValid) {
       return NextResponse.json({ message: 'Invalid password' }, { status: 401 });
     }
     console.log('====================================');
     console.log(user.dataValues);
     console.log('====================================');
     const token = generateToken({
-      id: user.dataValues.id,
-      email: user.dataValues.email,
-      role: user.dataValues.role,
-      event_id: event.dataValues.id,
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      event_id: event.id,
     });
 
     return NextResponse.json({ 
       token, 
       user: { 
-        id: user.dataValues.id, 
-        email: user.dataValues.email, 
-        role: user.dataValues.role,
-        event_id: event.dataValues.id,
-        name: user.dataValues.name
+        id: user.id, 
+        email: user.email, 
+        role: user.role,
+        event_id: event.id,
+        name: user.name
       } 
     });
   } catch (error) {

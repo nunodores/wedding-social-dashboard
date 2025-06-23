@@ -2,7 +2,20 @@ import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../database';
 import { Event } from './event';
 
-export class Guest extends Model {}
+export class Guest extends Model {  public id!: string;
+  public name!: string;
+  public email!: string;
+  public hashed_password!: string;
+  public phone?: string;
+  public avatar_url?: string;
+  public fcm_token?: string;
+  public wedding_event_id!: string;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+
+  // Association
+  public Event?: Event;
+}
 
 Guest.init({
   id: { type: DataTypes.STRING(191), primaryKey: true },

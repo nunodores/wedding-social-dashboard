@@ -7,7 +7,7 @@ export interface User {
   id: number;
   email: string;
   role: 'admin' | 'couple' | 'guest';
-  event_id?: number;
+  event_id?: string;
   name?: string;
 }
 

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     // Create event
     const event = await EventService.createEvent({
       name: eventName,
-      couple_user_id: coupleUser.dataValues.id,
+      couple_user_id: coupleUser.id,
       event_date: eventDate,
       description: description || '',
     });
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     // Send credentials email
     const emailTemplate = generateCoupleCredentialsEmail(
       coupleEmail,
-      event.dataValues.event_code,
+      event.event_code,
       password,
       eventName
     );
@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       message: 'Event created successfully',
-      eventCode: event.dataValues.event_code,
-      eventId: event.dataValues.id
+      eventCode: event.event_code,
+      eventId: event.id
     });
   } catch (error) {
     console.error('Create event error:', error);

@@ -15,7 +15,7 @@ export class UserService {
       } 
     });
 
-    if (user && await comparePassword(password, user.dataValues.password_hash)) {
+    if (user && await comparePassword(password, user.password_hash)) {
       return user;
     }
 

@@ -21,18 +21,18 @@ export async function POST(request: NextRequest) {
     }
 
     const token = generateToken({
-      id: user.dataValues.id,
-      email: user.dataValues.email,
-      role: user.dataValues.role,
+      id: user.id,
+      email: user.email,
+      role: user.role,
     });
 
     return NextResponse.json({ 
       token, 
       user: { 
-        id: user.dataValues.id, 
-        email: user.dataValues.email, 
-        role: user.dataValues.role,
-        name: user.dataValues.name 
+        id: user.id, 
+        email: user.email, 
+        role: user.role,
+        name: user.name 
       } 
     });
   } catch (error) {

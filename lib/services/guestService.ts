@@ -49,12 +49,12 @@ export class GuestService {
 
     const guest = await Guest.findOne({
       where: {
-        wedding_event_id: event.dataValues.id,
+        wedding_event_id: event.id,
         username,
       },
     });
 
-    if (guest && await require('bcryptjs').compare(password, guest.dataValues.hashed_password)) {
+    if (guest && await require('bcryptjs').compare(password, guest.hashed_password)) {
       return guest;
     }
 

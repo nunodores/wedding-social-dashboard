@@ -49,6 +49,8 @@ export default function CoupleDashboard() {
       if (response.ok) {
         const data = await response.json();
         setEventData(data.event);
+        console.log(data);
+        
       }
     } catch (error) {
       console.error('Failed to fetch event data:', error);
