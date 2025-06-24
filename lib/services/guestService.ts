@@ -4,7 +4,7 @@ import { Guest } from '../model/models';
 import { Event } from '../model/models';
 
 export class GuestService {
-  static async getGuestsByEventId(eventId: number): Promise<Guest[]> {
+  static async getGuestsByEventId(eventId: string): Promise<Guest[]> {
     return await Guest.findAll({
       where: { wedding_event_id: eventId },
       include: [
@@ -18,7 +18,7 @@ export class GuestService {
 
   static async createGuest(guestData: {
     id: string,
-    wedding_event_id: number;
+    wedding_event_id: string;
     name: string;
     email?: string;
     phone?: string;

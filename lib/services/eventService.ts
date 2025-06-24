@@ -20,7 +20,7 @@ export class EventService {
     });
   }
 
-  static async getEventById(id: number): Promise<Event | null> {
+  static async getEventById(id: string): Promise<Event | null> {
     return await Event.findByPk(id, {
       include: [
         {

@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
         const emailTemplate = generateGuestCredentialsEmail(
           guest.email!,
           guest.name,
-          guest.username,
           tempPassword,
           event.name,
           event.event_code

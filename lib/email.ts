@@ -1,27 +1,26 @@
 import nodemailer from 'nodemailer';
 
 // Create transporter (use mock for development)
-const transporter = process.env.NODE_ENV === 'production' 
-  ? nodemailer.createTransporter({
+const transporter =  nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false,
+      secure: true,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
     })
-  : {
-      sendMail: async (options: any) => {
-        console.log('📧 Mock Email:', {
-          from: options.from,
-          to: options.to,
-          subject: options.subject,
-          html: options.html.substring(0, 200) + '...'
-        });
-        return { success: true };
-      }
-    };
+  // : {
+  //     sendMail: async (options: any) => {
+  //       console.log('📧 Mock Email:', {
+  //         from: options.from,
+  //         to: options.to,
+  //         subject: options.subject,
+  //         html: options.html.substring(0, 200) + '...'
+  //       });
+  //       return { success: true };
+  //     }
+ ;
 
 export interface EmailTemplate {
   to: string;
@@ -84,7 +83,6 @@ export function generateCoupleCredentialsEmail(
 export function generateGuestCredentialsEmail(
   guestEmail: string,
   guestName: string,
-  username: string,
   password: string,
   eventName: string,
   eventCode: string
@@ -101,7 +99,6 @@ export function generateGuestCredentialsEmail(
         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3>Your Access Credentials:</h3>
           <p><strong>Event Code:</strong> ${eventCode}</p>
-          <p><strong>Username:</strong> ${username}</p>
           <p><strong>Password:</strong> ${password}</p>
         </div>
         
