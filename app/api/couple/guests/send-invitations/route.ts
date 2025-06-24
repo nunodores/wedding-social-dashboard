@@ -23,7 +23,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { guestIds } = await request.json();
+    const { guestIds, password } = await request.json();
+    console.log(guestIds, password)
+    if (!password) {
+      return NextResponse.json({ message: 'Wedding password is required' }, { status: 400 });
+    }
 
     // Get event info
     const event = await EventService.getEventById(user.event_id!);
@@ -47,18 +51,15 @@ export async function POST(request: NextRequest) {
 
     for (const guest of guests) {
       try {
-        // Note: In a real implementation, you'd need to store the plain password
-        // or generate a new one for sending invitations
-        const tempPassword = 'temp123'; // This should be handled properly
-
         const emailTemplate = generateGuestCredentialsEmail(
           guest.email!,
           guest.name,
-          tempPassword,
+          password, // Use the real password provided by the couple
           event.name,
           event.event_code
         );
-
+        console.log(emailTemplate);
+        
         await sendEmail(emailTemplate);
         sent++;
       } catch (error) {

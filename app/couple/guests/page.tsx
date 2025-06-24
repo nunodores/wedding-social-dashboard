@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Modal } from '@/components/ui/modal';
 import { 
   Upload, 
   Download, 
@@ -14,7 +16,10 @@ import {
   Heart,
   FileSpreadsheet,
   Send,
-  UserPlus
+  UserPlus,
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -34,6 +39,10 @@ export default function CoupleGuests() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [sendingInvites, setSendingInvites] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedGuestIds, setSelectedGuestIds] = useState<number[]>([]);
+  const [weddingPassword, setWeddingPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchGuests();
@@ -87,9 +96,6 @@ export default function CoupleGuests() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('====================================');
-        console.log(data);
-        console.log('====================================');
         toast.success(`${data.imported} guests imported successfully`);
         fetchGuests(); // Refresh guest list
       } else {
@@ -105,7 +111,25 @@ export default function CoupleGuests() {
     }
   };
 
-  const sendInvitations = async (guestIds?: number[]) => {
+  const openPasswordModal = (guestIds?: number[]) => {
+    setSelectedGuestIds(guestIds || []);
+    setWeddingPassword('');
+    setShowPasswordModal(true);
+  };
+
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setSelectedGuestIds([]);
+    setWeddingPassword('');
+    setShowPassword(false);
+  };
+
+  const sendInvitations = async () => {
+    if (!weddingPassword.trim()) {
+      toast.error('Please enter the wedding password');
+      return;
+    }
+
     setSendingInvites(true);
     try {
       const token = localStorage.getItem('auth-token');
@@ -115,15 +139,20 @@ export default function CoupleGuests() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ guestIds }),
+        body: JSON.stringify({ 
+          guestIds: selectedGuestIds.length > 0 ? selectedGuestIds : undefined,
+          password: weddingPassword
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
         toast.success(`Invitations sent to ${data.sent} guests`);
+        closePasswordModal();
         fetchGuests(); // Refresh to update status
       } else {
-        toast.error('Failed to send invitations');
+        const error = await response.json();
+        toast.error(error.message || 'Failed to send invitations');
       }
     } catch (error) {
       toast.error('Failed to send invitations');
@@ -244,7 +273,7 @@ export default function CoupleGuests() {
                 </div>
               </div>
               <p className="text-sm text-gray-600 mt-4">
-                Each guest will automatically receive unique login credentials via email.
+                Each guest will receive unique login credentials via email with the wedding password you provide.
               </p>
             </CardContent>
           </Card>
@@ -265,17 +294,11 @@ export default function CoupleGuests() {
               </div>
               {guests.length > 0 && (
                 <Button 
-                  onClick={() => sendInvitations()}
+                  onClick={() => openPasswordModal()}
                   disabled={sendingInvites}
                 >
-                  {sendingInvites ? (
-                    'Sending...'
-                  ) : (
-                    <>
-                      <Mail className="h-4 w-4 mr-2" />
-                      Send All Invitations
-                    </>
-                  )}
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send All Invitations
                 </Button>
               )}
             </div>
@@ -316,7 +339,7 @@ export default function CoupleGuests() {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => sendInvitations([guest.id])}
+                        onClick={() => openPasswordModal([guest.id])}
                         disabled={sendingInvites}
                       >
                         <Send className="h-4 w-4 mr-1" />
@@ -330,6 +353,81 @@ export default function CoupleGuests() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Password Modal */}
+      <Modal
+        isOpen={showPasswordModal}
+        onClose={closePasswordModal}
+        title="Enter Wedding Password"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+            <Lock className="h-5 w-5 text-blue-600" />
+            <p className="text-sm text-blue-800">
+              This password will be included in the invitation emails for guests to access your wedding platform.
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="wedding-password">Wedding Password</Label>
+            <div className="relative">
+              <Input
+                id="wedding-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter the password for your wedding"
+                value={weddingPassword}
+                onChange={(e) => setWeddingPassword(e.target.value)}
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-600">
+            {selectedGuestIds.length > 0 ? (
+              <p>Sending invitation to {selectedGuestIds.length} selected guest{selectedGuestIds.length > 1 ? 's' : ''}</p>
+            ) : (
+              <p>Sending invitations to all {guests.length} guests</p>
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={closePasswordModal}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={sendInvitations}
+              disabled={sendingInvites || !weddingPassword.trim()}
+              className="flex-1"
+            >
+              {sendingInvites ? (
+                'Sending...'
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Invitations
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

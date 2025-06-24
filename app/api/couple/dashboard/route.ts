@@ -34,6 +34,8 @@ export async function GET(request: NextRequest) {
       event_code: event.event_code,
       primary_color: event.primary_color,
       logo_url: event.logo_url,
+      font_name: event.font_name,
+      use_logo_text: event.use_logo_text,
       guest_count: event.guest_count,
       photos_count: event.photos_count,
       posts_count: event.posts_count,

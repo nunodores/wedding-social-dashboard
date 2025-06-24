@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { EventService } from '@/lib/services/eventService';
 import { initializeDatabase } from '@/lib/db-init';
+import { use } from 'react';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { primary_color, logo_text, use_text_logo, logo_url } = await request.json();
+    const { primary_color, logo_text, font_name, use_text_logo, logo_url } = await request.json();
 
     const event = await EventService.getEventById(user.event_id!);
     if (!event) {
@@ -29,13 +30,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update event customization
-    const updateData: any = { primary_color, name:logo_text, logo_url};
-    
-    if (use_text_logo) {
-      updateData.logo_url = null; // Clear image logo
-      // You might want to store logo_text in a separate field
-    }
-
+    const updateData: any = { 
+      primary_color, 
+      name: logo_text, 
+      logo_url,
+      use_logo_text: use_text_logo,
+      font_name
+    };
+        
     await event.update(updateData);
 
     return NextResponse.json({ message: 'Customization saved successfully' });
