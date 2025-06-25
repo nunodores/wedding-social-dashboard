@@ -4,7 +4,7 @@ import { initializeDatabase } from '@/lib/db-init';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest) {
   try {
     await initializeDatabase();
     
@@ -16,23 +16,29 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     const user = verifyToken(token);
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== 'couple') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
+    const { name, event_date, description } = await request.json();
+
     const { Event } = require('@/lib/model/models');
-    const event = await Event.findByPk(params.id);
+    const event = await Event.findByPk(user.event_id);
     
     if (!event) {
       return NextResponse.json({ message: 'Event not found' }, { status: 404 });
     }
 
-    // Set event status to inactive
-    await event.update({ status: 'inactive' });
+    // Update event details
+    await event.update({
+      name,
+      event_date: event_date || null,
+      description: description || null,
+    });
 
-    return NextResponse.json({ message: 'Access removed successfully' });
+    return NextResponse.json({ message: 'Event details updated successfully' });
   } catch (error) {
-    console.error('Remove access error:', error);
-    return NextResponse.json({ message: 'Failed to remove access' }, { status: 500 });
+    console.error('Update event details error:', error);
+    return NextResponse.json({ message: 'Failed to update event details' }, { status: 500 });
   }
 }

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { initializeDatabase } from '@/lib/db-init';
-
+import { Guest } from '@/lib/model/guest'
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: any) {
   try {
     await initializeDatabase();
     
@@ -20,19 +20,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { Event } = require('@/lib/model/models');
-    const event = await Event.findByPk(params.id);
-    
-    if (!event) {
-      return NextResponse.json({ message: 'Event not found' }, { status: 404 });
-    }
+    const guests = await Guest.findAll({
+      where: { wedding_event_id: params.id },
+    });
 
-    // Set event status to inactive
-    await event.update({ status: 'inactive' });
-
-    return NextResponse.json({ message: 'Access removed successfully' });
+    return NextResponse.json({ guests });
   } catch (error) {
-    console.error('Remove access error:', error);
-    return NextResponse.json({ message: 'Failed to remove access' }, { status: 500 });
+    console.error('Admin guests fetch error:', error);
+    return NextResponse.json({ message: 'Failed to fetch guests' }, { status: 500 });
   }
 }

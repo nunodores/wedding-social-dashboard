@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Users, 
   Camera, 
@@ -21,7 +22,11 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Send
+  Send,
+  Calendar,
+  Edit,
+  Save,
+  X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -33,6 +38,8 @@ interface EventData {
   event_code: string;
   primary_color: string;
   logo_url: string;
+  event_date?: string;
+  description?: string;
   guest_count: number;
   photos_count: number;
   posts_count: number;
@@ -42,9 +49,16 @@ export default function CoupleDashboard() {
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [weddingPassword, setWeddingPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [sendingInvites, setSendingInvites] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    event_date: '',
+    description: '',
+  });
+  const [saving, setSaving] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -61,6 +75,11 @@ export default function CoupleDashboard() {
       if (response.ok) {
         const data = await response.json();
         setEventData(data.event);
+        setEditForm({
+          name: data.event.name || '',
+          event_date: data.event.event_date || '',
+          description: data.event.description || '',
+        });
       }
     } catch (error) {
       console.error('Failed to fetch event data:', error);
@@ -83,6 +102,47 @@ export default function CoupleDashboard() {
     setShowPasswordModal(false);
     setWeddingPassword('');
     setShowPassword(false);
+  };
+
+  const openEditModal = () => {
+    setEditForm({
+      name: eventData?.name || '',
+      event_date: eventData?.event_date || '',
+      description: eventData?.description || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSaving(false);
+  };
+
+  const handleSaveEventDetails = async () => {
+    setSaving(true);
+    try {
+      const token = localStorage.getItem('auth-token');
+      const response = await fetch('/api/couple/event-details', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      if (response.ok) {
+        toast.success('Event details updated successfully');
+        closeEditModal();
+        fetchEventData(); // Refresh data
+      } else {
+        toast.error('Failed to update event details');
+      }
+    } catch (error) {
+      toast.error('Failed to update event details');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const sendAllInvitations = async () => {
@@ -121,6 +181,13 @@ export default function CoupleDashboard() {
     }
   };
 
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setEditForm({
+      ...editForm,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen wedding-gradient flex items-center justify-center">
@@ -141,10 +208,29 @@ export default function CoupleDashboard() {
             <div className="flex items-center">
               <Heart className="h-8 w-8 mr-3" />
               <div>
-                <h1 className="text-2xl font-bold font-playfair">
-                  {eventData?.name || 'Your Wedding'}
-                </h1>
-                <p className="text-white/80">Event Code: {eventData?.event_code}</p>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold font-playfair">
+                    {eventData?.name || 'Your Wedding'}
+                  </h1>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-white text-white hover:bg-white/10"
+                    onClick={openEditModal}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+                <div className="flex items-center gap-4 text-white/80 text-sm mt-1">
+                  <span>Event Code: {eventData?.event_code}</span>
+                  {eventData?.event_date && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(eventData.event_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <Button variant="outline" className="border-white text-white hover:bg-white/10" onClick={handleLogout}>
@@ -263,6 +349,50 @@ export default function CoupleDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Event Details Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Calendar className="h-5 w-5 mr-2" />
+                    Event Details
+                  </CardTitle>
+                  <Button variant="outline" size="sm" onClick={openEditModal}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Details
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Event Name</Label>
+                    <p className="font-semibold">{eventData?.name || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Event Date</Label>
+                    <p className="font-semibold">
+                      {eventData?.event_date 
+                        ? new Date(eventData.event_date).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })
+                        : 'Not set'
+                      }
+                    </p>
+                  </div>
+                </div>
+                {eventData?.description && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Description</Label>
+                    <p className="mt-1">{eventData.description}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="guests">
@@ -407,6 +537,74 @@ export default function CoupleDashboard() {
                 <>
                   <Send className="h-4 w-4 mr-2" />
                   Send Invitations
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Event Details Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={closeEditModal}
+        title="Edit Event Details"
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit-name">Event Name</Label>
+            <Input
+              id="edit-name"
+              name="name"
+              value={editForm.name}
+              onChange={handleEditFormChange}
+              placeholder="Enter event name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-date">Event Date</Label>
+            <Input
+              id="edit-date"
+              name="event_date"
+              type="date"
+              value={editForm.event_date}
+              onChange={handleEditFormChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-description">Description (Optional)</Label>
+            <Textarea
+              id="edit-description"
+              name="description"
+              value={editForm.description}
+              onChange={handleEditFormChange}
+              placeholder="Add a description for your event..."
+              rows={3}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={closeEditModal}
+              className="flex-1"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEventDetails}
+              disabled={saving}
+              className="flex-1"
+            >
+              {saving ? (
+                'Saving...'
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
                 </>
               )}
             </Button>

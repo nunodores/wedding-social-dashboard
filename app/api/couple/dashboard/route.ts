@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Event not found' }, { status: 404 });
     }
 
-    // Transform event to include computed fields
+    // Return the event with calculated counts
     const transformedEvent = {
       id: event.id,
       name: event.name,
@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       guest_count: event.guest_count,
       photos_count: event.photos_count,
       posts_count: event.posts_count,
+      event_date: event.event_date
     };
 
     return NextResponse.json({ event: transformedEvent });

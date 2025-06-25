@@ -21,7 +21,11 @@ import {
   MessageCircle,
   Share,
   Bookmark,
-  Type
+  Type,
+  Trash2,
+  Check,
+  X,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -33,6 +37,16 @@ interface EventCustomization {
   logo_url?: string;
   logo_text?: string;
   font_name?: string;
+}
+
+interface Logo {
+  public_id: string;
+  url: string;
+  created_at: string;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
 }
 
 const FONT_OPTIONS = [
@@ -55,12 +69,17 @@ export default function CoupleCustomize() {
     use_text_logo: true,
     logo_url: null
   });
+  const [existingLogos, setExistingLogos] = useState<Logo[]>([]);
+  const [selectedLogoUrl, setSelectedLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loadingLogos, setLoadingLogos] = useState(false);
+  const [deletingLogo, setDeletingLogo] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEventData();
+    fetchExistingLogos();
   }, []);
 
   const fetchEventData = async () => {
@@ -82,11 +101,31 @@ export default function CoupleCustomize() {
           logo_url:  data.event.logo_url
         });
 
+        setSelectedLogoUrl(data.event.logo_url);
       }
     } catch (error) {
       console.error('Failed to fetch event data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExistingLogos = async () => {
+    setLoadingLogos(true);
+    try {
+      const token = localStorage.getItem('auth-token');
+      const response = await fetch('/api/couple/logos', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setExistingLogos(data.logos);
+      }
+    } catch (error) {
+      console.error('Failed to fetch existing logos:', error);
+    } finally {
+      setLoadingLogos(false);
     }
   };
 
@@ -100,7 +139,10 @@ export default function CoupleCustomize() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          logo_url: selectedLogoUrl
+        }),
       });
 
       if (response.ok) {
@@ -125,6 +167,7 @@ export default function CoupleCustomize() {
     formDataFile.append('file', file);
     formDataFile.append('type', 'image');
     formDataFile.append('folder', `wedding-app/${eventData?.id}/logos`);
+    
     try {
       const token = localStorage.getItem('auth-token');
       const response = await fetch('/api/couple/upload-logo', {
@@ -135,8 +178,9 @@ export default function CoupleCustomize() {
 
       if (response.ok) {
         const data = await response.json();
-        formData.logo_url = data.url;
+        setSelectedLogoUrl(data.url);
         toast.success('Logo uploaded successfully');
+        fetchExistingLogos(); // Refresh logos list
       } else {
         toast.error('Failed to upload logo');
       }
@@ -148,6 +192,47 @@ export default function CoupleCustomize() {
     }
   };
 
+  const handleDeleteLogo = async (logo: Logo) => {
+    if (!confirm('Are you sure you want to delete this logo? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingLogo(logo.public_id);
+    try {
+      const token = localStorage.getItem('auth-token');
+      const response = await fetch('/api/couple/logos', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ public_id: logo.public_id }),
+      });
+
+      if (response.ok) {
+        toast.success('Logo deleted successfully');
+        
+        // If the deleted logo was selected, clear selection
+        if (selectedLogoUrl === logo.url) {
+          setSelectedLogoUrl(null);
+        }
+        
+        fetchExistingLogos(); // Refresh logos list
+      } else {
+        toast.error('Failed to delete logo');
+      }
+    } catch (error) {
+      toast.error('Failed to delete logo');
+    } finally {
+      setDeletingLogo(null);
+    }
+  };
+
+  const handleSelectLogo = (logoUrl: string) => {
+    setSelectedLogoUrl(logoUrl);
+    setFormData(prev => ({ ...prev, use_text_logo: false }));
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -157,6 +242,14 @@ export default function CoupleCustomize() {
 
   const getSelectedFont = () => {
     return FONT_OPTIONS.find(font => font.value === formData.font_name) || FONT_OPTIONS[0];
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   if (loading) {
@@ -288,7 +381,10 @@ export default function CoupleCustomize() {
                         id="text_logo"
                         name="logo_type"
                         checked={formData.use_text_logo}
-                        onChange={() => setFormData(prev => ({ ...prev, use_text_logo: true }))}
+                        onChange={() => {
+                          setFormData(prev => ({ ...prev, use_text_logo: true }));
+                          setSelectedLogoUrl(null);
+                        }}
                       />
                       <Label htmlFor="text_logo">Use Text Logo</Label>
                     </div>
@@ -382,17 +478,81 @@ export default function CoupleCustomize() {
 
                     {!formData.use_text_logo && (
                       <div className="space-y-4">
-                        {(formData.logo_url || eventData?.logo_url) && (
+                        {/* Current Selected Logo */}
+                        {selectedLogoUrl && (
                           <div>
-                            <Label>Current Logo</Label>
-                            <img 
-                              src={formData.logo_url || eventData?.logo_url} 
-                              alt="Current logo" 
-                              className="w-24 h-24 object-contain border rounded-lg mt-2"
-                            />
+                            <div className="relative inline-block mt-2">
+                              <img 
+                                src={selectedLogoUrl} 
+                                alt="Selected logo" 
+                                className="w-24 h-24 object-contain border rounded-lg"
+                              />
+                              <button
+                                onClick={() => setSelectedLogoUrl(null)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Existing Logos Gallery */}
+                        {existingLogos.length > 0 && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <Label>Previously Uploaded Logos</Label>
+                              {loadingLogos && <Loader2 className="h-4 w-4 animate-spin" />}
+                            </div>
+                            <div className="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                              {existingLogos.map((logo) => (
+                                <div key={logo.public_id} className="relative group">
+                                  <div 
+                                    className={`relative border-2 rounded-lg overflow-hidden cursor-pointer transition-all hover:border-purple-300 ${
+                                      selectedLogoUrl === logo.url ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200'
+                                    }`}
+                                    onClick={() => handleSelectLogo(logo.url)}
+                                  >
+                                    <img 
+                                      src={logo.url} 
+                                      alt="Logo option" 
+                                      className="w-full h-20 object-contain bg-white"
+                                    />
+                                    {selectedLogoUrl === logo.url && (
+                                      <div className="absolute inset-0 bg-purple-500/20 flex items-center justify-center">
+                                        <Check className="h-6 w-6 text-purple-600" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Delete button */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteLogo(logo);
+                                    }}
+                                    disabled={deletingLogo === logo.public_id}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                                  >
+                                    {deletingLogo === logo.public_id ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="h-3 w-3" />
+                                    )}
+                                  </button>
+                                  
+                                  {/* Logo info */}
+                                  <div className="mt-1 text-xs text-gray-500 text-center">
+                                    <div>{logo.width}×{logo.height}</div>
+                                    <div>{formatFileSize(logo.bytes)}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                         
+                        {/* Upload New Logo */}
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                           <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 mb-2">
@@ -409,7 +569,14 @@ export default function CoupleCustomize() {
                           <label htmlFor="logo-upload">
                             <Button asChild size="sm" disabled={uploading}>
                               <span>
-                                {uploading ? 'Uploading...' : 'Choose File'}
+                                {uploading ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Uploading...
+                                  </>
+                                ) : (
+                                  'Choose File'
+                                )}
                               </span>
                             </Button>
                           </label>
@@ -422,7 +589,10 @@ export default function CoupleCustomize() {
 
               <Button onClick={handleSave} disabled={saving} className="w-full">
                 {saving ? (
-                  'Saving...'
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
@@ -453,11 +623,11 @@ export default function CoupleCustomize() {
                           {formData.logo_text || eventData?.name || 'WeddingPost'}
                         </h1>
                       ) : (
-                        eventData?.logo_url ? (
+                        selectedLogoUrl ? (
                           <img 
-                            src={eventData.logo_url} 
+                            src={selectedLogoUrl} 
                             alt="Logo" 
-                            className="h-8 w-auto"
+                            className="h-14 w-auto max-w-32"
                           />
                         ) : (
                           <h1 
@@ -617,6 +787,15 @@ export default function CoupleCustomize() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">Font:</span>
                         <span className="text-xs">{getSelectedFont().name}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {!formData.use_text_logo && selectedLogoUrl && (
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Logo:</span>
+                        <span className="text-xs">Custom image selected</span>
                       </div>
                     </div>
                   )}

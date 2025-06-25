@@ -22,23 +22,15 @@ export async function GET(request: NextRequest) {
     }
 
     const events = await EventService.getAllEvents();
-    const stats = await EventService.getAdminStats();
-
-    // Transform events to include computed fields
-    const transformedEvents = events.map(event => ({
-      id: event.id,
-      name: event.name,
-      event_code: event.event_code,
-      status: event.status,
-      couple_email: event.couple_email,
-      created_at: event.created_at,
-      guest_count: event.guest_count,
-      photos_count: event.photos_count,
-      posts_count: event.posts_count,
-    }));
+    
+    // Get simplified stats (only total and active events)
+    const stats = {
+      totalEvents: events.length,
+      activeEvents: events.filter(event => event.status === 'active').length,
+    };
 
     return NextResponse.json({
-      events: transformedEvents,
+      events,
       stats,
     });
   } catch (error) {

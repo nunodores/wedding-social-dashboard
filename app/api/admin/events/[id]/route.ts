@@ -21,30 +21,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const event = await EventService.getEventById(parseInt(params.id));
+    const event = await EventService.getEventById(params.id);
 
     if (!event) {
       return NextResponse.json({ message: 'Event not found' }, { status: 404 });
     }
 
-    // Transform event to include computed fields
-    const transformedEvent = {
-      id: event.id,
-      name: event.name,
-      event_code: event.event_code,
-      primary_color: event.primary_color,
-      logo_url: event.logo_url,
-      couple_email: event.couple_email,
-      event_date: event.event_date,
-      description: event.description,
-      status: event.status,
-      guest_count: event.guest_count,
-      photos_count: event.photos_count,
-      posts_count: event.posts_count,
-      created_at: event.created_at,
-    };
-
-    return NextResponse.json({ event: transformedEvent });
+    return NextResponse.json({ event });
   } catch (error) {
     console.error('Admin event fetch error:', error);
     return NextResponse.json({ message: 'Failed to fetch event' }, { status: 500 });
@@ -69,7 +52,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const { name, event_date, description, primary_color, status } = await request.json();
 
-    const event = await EventService.getEventById(parseInt(params.id));
+    const { Event } = require('@/lib/model/models');
+    const event = await Event.findByPk(params.id);
+    
     if (!event) {
       return NextResponse.json({ message: 'Event not found' }, { status: 404 });
     }

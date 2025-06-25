@@ -6,15 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Users, 
   Calendar, 
-  DollarSign, 
   Eye,
   Settings,
   LogOut,
   Heart,
   Activity,
-  UserX
+  UserX,
+  Filter,
+  Clock,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -27,24 +29,33 @@ interface Event {
   status: 'active' | 'inactive' | 'completed';
   couple_email: string;
   created_at: string;
+  event_date?: string;
   guest_count: number;
   photos_count: number;
+  posts_count: number;
+  
 }
+
+type EventFilter = 'all' | 'past' | 'active' | 'future';
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState({
     totalEvents: 0,
     activeEvents: 0,
-    totalGuests: 0,
-    totalPhotos: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<EventFilter>('all');
   const router = useRouter();
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    filterEvents();
+  }, [events, activeFilter]);
 
   const fetchDashboardData = async () => {
     try {
@@ -56,13 +67,51 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json();
         setEvents(data.events);
-        setStats(data.stats);
+        setStats({
+          totalEvents: data.stats.totalEvents,
+          activeEvents: data.stats.activeEvents,
+        });
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterEvents = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let filtered = events;
+
+    switch (activeFilter) {
+      case 'past':
+        filtered = events.filter(event => {
+          if (!event.event_date) return false;
+          const eventDate = new Date(event.event_date);
+          return eventDate < today;
+        });
+        break;
+      case 'active':
+        filtered = events.filter(event => {
+          if (!event.event_date) return event.status === 'active';
+          const eventDate = new Date(event.event_date);
+          return eventDate.getTime() === today.getTime() || event.status === 'active';
+        });
+        break;
+      case 'future':
+        filtered = events.filter(event => {
+          if (!event.event_date) return false;
+          const eventDate = new Date(event.event_date);
+          return eventDate > today;
+        });
+        break;
+      default:
+        filtered = events;
+    }
+
+    setFilteredEvents(filtered);
   };
 
   const handleLogout = () => {
@@ -110,6 +159,66 @@ export default function AdminDashboard() {
     }
   };
 
+  const getEventTypeIcon = (event: Event) => {
+    if (!event.event_date) return <Calendar className="h-4 w-4" />;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const eventDate = new Date(event.event_date);
+    
+    if (eventDate < today) {
+      return <CheckCircle className="h-4 w-4 text-blue-600" />;
+    } else if (eventDate.getTime() === today.getTime()) {
+      return <AlertCircle className="h-4 w-4 text-orange-600" />;
+    } else {
+      return <Clock className="h-4 w-4 text-green-600" />;
+    }
+  };
+
+  const getEventTypeLabel = (event: Event) => {
+    console.log('====================================');
+    console.log(event);
+    console.log('====================================');
+    if (!event.event_date) return 'No date set';
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const eventDate = new Date(event.event_date);
+    
+    if (eventDate < today) {
+      return 'Past Event';
+    } else if (eventDate.getTime() === today.getTime()) {
+      return 'Today';
+    } else {
+      return 'Upcoming';
+    }
+  };
+
+  const getFilterCounts = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const pastCount = events.filter(event => {
+      if (!event.event_date) return false;
+      const eventDate = new Date(event.event_date);
+      return eventDate < today;
+    }).length;
+
+    const activeCount = events.filter(event => {
+      if (!event.event_date) return event.status === 'active';
+      const eventDate = new Date(event.event_date);
+      return eventDate.getTime() === today.getTime() || event.status === 'active';
+    }).length;
+
+    const futureCount = events.filter(event => {
+      if (!event.event_date) return false;
+      const eventDate = new Date(event.event_date);
+      return eventDate > today;
+    }).length;
+
+    return { pastCount, activeCount, futureCount };
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -120,6 +229,8 @@ export default function AdminDashboard() {
       </div>
     );
   }
+
+  const { pastCount, activeCount, futureCount } = getFilterCounts();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -135,6 +246,11 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <Link href="/admin/create-event">
+                <Button>
+                  Create New Event
+                </Button>
+              </Link>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -146,7 +262,7 @@ export default function AdminDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Events</CardTitle>
@@ -154,6 +270,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalEvents}</div>
+              <p className="text-xs text-muted-foreground">All wedding events</p>
             </CardContent>
           </Card>
           
@@ -164,26 +281,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.activeEvents}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Guests</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalGuests}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Photos</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPhotos}</div>
+              <p className="text-xs text-muted-foreground">Currently active</p>
             </CardContent>
           </Card>
         </div>
@@ -198,58 +296,126 @@ export default function AdminDashboard() {
           <TabsContent value="events" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Wedding Events</h2>
+              
+              {/* Event Filters */}
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-gray-500" />
+                <div className="flex gap-1">
+                  <Button
+                    variant={activeFilter === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveFilter('all')}
+                  >
+                    All ({events.length})
+                  </Button>
+                  <Button
+                    variant={activeFilter === 'past' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveFilter('past')}
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Past ({pastCount})
+                  </Button>
+                  <Button
+                    variant={activeFilter === 'active' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveFilter('active')}
+                  >
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Active ({activeCount})
+                  </Button>
+                  <Button
+                    variant={activeFilter === 'future' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveFilter('future')}
+                  >
+                    <Clock className="h-3 w-3 mr-1" />
+                    Future ({futureCount})
+                  </Button>
+                </div>
+              </div>
             </div>
 
             <div className="grid gap-4">
-              {events.map((event) => (
-                <Card key={event.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-semibold">{event.name}</h3>
-                          <Badge className={getStatusColor(event.status)}>
-                            {event.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          Code: {event.event_code} • Couple: {event.couple_email}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {event.guest_count} guests • {event.photos_count} photos
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewEvent(event.id)}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleManageEvent(event.id)}
-                        >
-                          <Settings className="h-4 w-4 mr-2" />
-                          Manage
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => handleRemoveAccess(event.id, event.name)}
-                        >
-                          <UserX className="h-4 w-4 mr-2" />
-                          Remove Access
-                        </Button>
-                      </div>
-                    </div>
+              {filteredEvents.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">
+                      No {activeFilter === 'all' ? '' : activeFilter} events found
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      {activeFilter === 'all' 
+                        ? 'No events have been created yet.' 
+                        : `No ${activeFilter} events match your filter.`}
+                    </p>
+                    {activeFilter === 'all' && (
+                      <Link href="/admin/create-event">
+                        <Button>Create Your First Event</Button>
+                      </Link>
+                    )}
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                filteredEvents.map((event) => (
+                  <Card key={event.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold">{event.name}</h3>
+                            <Badge className={getStatusColor(event.status)}>
+                              {event.status}
+                            </Badge>
+                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                              {getEventTypeIcon(event)}
+                              <span>{getEventTypeLabel(event)}</span>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Code: {event.event_code} • Couple: {event.couple_email}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span>{event.guest_count} guests</span>
+                            <span>{event.photos_count} photos</span>
+                            <span>{event.posts_count} posts</span>
+                            {event.event_date && (
+                              <span>Date: {new Date(event.event_date).toLocaleDateString()}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewEvent(event.id)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleManageEvent(event.id)}
+                          >
+                            <Settings className="h-4 w-4 mr-2" />
+                            Manage
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleRemoveAccess(event.id, event.name)}
+                          >
+                            <UserX className="h-4 w-4 mr-2" />
+                            Remove Access
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
 
