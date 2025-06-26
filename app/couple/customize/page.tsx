@@ -281,14 +281,13 @@ export default function CoupleCustomize() {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div 
-          className="text-white"
-          style={{ background: `linear-gradient(135deg, ${formData.primary_color}, ${formData.primary_color}dd)` }}
+          className="wedding-gradient text-white"
         >
           <div className="container mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Link href="/couple/dashboard" className="mr-4">
-                  <Button variant="outline" className="border-white text-white hover:bg-white/10" size="sm">
+                  <Button variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white hover:border-white/50" size="sm">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>

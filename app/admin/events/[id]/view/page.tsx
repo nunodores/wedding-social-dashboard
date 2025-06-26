@@ -56,7 +56,7 @@ export default function AdminEventView() {
   const [loading, setLoading] = useState(true);
   const [guestsLoading, setGuestsLoading] = useState(false);
   const [postsLoading, setPostsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('overview');
+
   useEffect(() => {
     fetchEventData();
   }, []);
@@ -122,7 +122,7 @@ export default function AdminEventView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
           <Heart className="h-8 w-8 animate-pulse mx-auto mb-4 text-purple-600" />
           <p>Loading event details...</p>
@@ -133,7 +133,7 @@ export default function AdminEventView() {
 
   if (!eventData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
           <p>Event not found</p>
           <Link href="/admin/dashboard">
@@ -168,18 +168,18 @@ export default function AdminEventView() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center w-full sm:w-auto">
               <Link href="/admin/dashboard" className="mr-4">
                 <Button variant="outline" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
               </Link>
-              <Heart className="h-8 w-8 text-purple-600 mr-3" />
-              <div>
-                <h1 className="text-2xl font-bold">Event Dashboard</h1>
-                <p className="text-gray-600">{eventData.name}</p>
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mr-3 flex-shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold">Event Dashboard</h1>
+                <p className="text-sm sm:text-base text-gray-600 truncate">{eventData.name}</p>
               </div>
             </div>
             <Badge className={getStatusColor(eventData.status)}>
@@ -189,39 +189,39 @@ export default function AdminEventView() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Event Info */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8">
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Event Information</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Event Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">Event Name</label>
-                  <p className="font-semibold">{eventData.name}</p>
+                  <p className="font-semibold text-sm sm:text-base">{eventData.name}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Event Code</label>
-                  <p className="font-mono font-semibold">{eventData.event_code}</p>
+                  <p className="font-mono font-semibold text-sm sm:text-base">{eventData.event_code}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Couple Email</label>
-                  <p>{eventData.couple_email}</p>
+                  <p className="text-sm sm:text-base truncate">{eventData.couple_email}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Event Date</label>
-                  <p>{eventData.event_date ? new Date(eventData.event_date).toLocaleDateString() : 'Not set'}</p>
+                  <p className="text-sm sm:text-base">{eventData.event_date ? new Date(eventData.event_date).toLocaleDateString() : 'Not set'}</p>
                 </div>
               </div>
               {eventData.description && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">Description</label>
-                  <p className="mt-1">{eventData.description}</p>
+                  <p className="mt-1 text-sm sm:text-base">{eventData.description}</p>
                 </div>
               )}
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">Theme Color</label>
                   <div className="flex items-center gap-2 mt-1">
@@ -248,7 +248,7 @@ export default function AdminEventView() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Quick Stats</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Quick Stats</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -284,13 +284,13 @@ export default function AdminEventView() {
         </div>
 
         {/* Tabs for Guest List and Content */}
-        <Tabs  value={activeTab} onValueChange={(val: string) => setActiveTab(val)} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="guests" onClick={() => !guests.length && fetchGuests()}>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="guests" onClick={() => !guests.length && fetchGuests()} className="text-sm">
               Guest List ({eventData.guest_count})
             </TabsTrigger>
-            <TabsTrigger value="content" onClick={() => !posts.length && fetchPosts()}>
+            <TabsTrigger value="content" onClick={() => !posts.length && fetchPosts()} className="text-sm">
               Content ({eventData.posts_count})
             </TabsTrigger>
           </TabsList>
@@ -299,27 +299,27 @@ export default function AdminEventView() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
+                  <CardTitle className="flex items-center text-base sm:text-lg">
                     <Users className="h-5 w-5 mr-2" />
                     Guest Management
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-sm">
                     View and manage event guests
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-4">
                     <p className="text-2xl font-bold text-purple-600 mb-2">{eventData.guest_count}</p>
-                    <p className="text-gray-600 mb-4">Total Guests</p>
+                    <p className="text-gray-600 mb-4 text-sm sm:text-base">Total Guests</p>
                     <Button 
                       variant="outline" 
                       onClick={() => {
-                        setActiveTab('guests'); 
                         if (!guests.length) fetchGuests();
                         // Switch to guests tab
                         const guestsTab = document.querySelector('[value="guests"]') as HTMLElement;
                         guestsTab?.click();
                       }}
+                      className="text-sm"
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View Guest List
@@ -330,11 +330,11 @@ export default function AdminEventView() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
+                  <CardTitle className="flex items-center text-base sm:text-lg">
                     <Camera className="h-5 w-5 mr-2" />
                     Shared Content
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-sm">
                     Photos and posts from guests
                   </CardDescription>
                 </CardHeader>
@@ -353,13 +353,12 @@ export default function AdminEventView() {
                     <Button 
                       variant="outline"
                       onClick={() => {
-                        setActiveTab('content'); 
-
                         if (!posts.length) fetchPosts();
                         // Switch to content tab
                         const contentTab = document.querySelector('[value="content"]') as HTMLElement;
                         contentTab?.click();
                       }}
+                      className="text-sm"
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View Content
@@ -373,8 +372,8 @@ export default function AdminEventView() {
           <TabsContent value="guests">
             <Card>
               <CardHeader>
-                <CardTitle>Guest List</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-base sm:text-lg">Guest List</CardTitle>
+                <CardDescription className="text-sm">
                   All guests invited to this event
                 </CardDescription>
               </CardHeader>
@@ -382,28 +381,28 @@ export default function AdminEventView() {
                 {guestsLoading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                    <p className="mt-2 text-gray-600">Loading guests...</p>
+                    <p className="mt-2 text-gray-600 text-sm">Loading guests...</p>
                   </div>
                 ) : guests.length === 0 ? (
                   <div className="text-center py-8">
-                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No guests found for this event</p>
+                    <Users className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 text-sm sm:text-base">No guests found for this event</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {guests.map((guest) => (
-                      <div key={guest.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{guest.name}</h4>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                      <div key={guest.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm sm:text-base">{guest.name}</h4>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-1">
                             <div className="flex items-center">
-                              <Mail className="h-4 w-4 mr-1" />
-                              {guest.email}
+                              <Mail className="h-4 w-4 mr-1 flex-shrink-0" />
+                              <span className="truncate">{guest.email}</span>
                             </div>
                             {guest.phone && (
                               <div className="flex items-center">
-                                <Phone className="h-4 w-4 mr-1" />
-                                {guest.phone}
+                                <Phone className="h-4 w-4 mr-1 flex-shrink-0" />
+                                <span>{guest.phone}</span>
                               </div>
                             )}
                           </div>
@@ -422,8 +421,8 @@ export default function AdminEventView() {
           <TabsContent value="content">
             <Card>
               <CardHeader>
-                <CardTitle>Shared Content</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-base sm:text-lg">Shared Content</CardTitle>
+                <CardDescription className="text-sm">
                   Photos and posts shared by guests
                 </CardDescription>
               </CardHeader>
@@ -431,13 +430,13 @@ export default function AdminEventView() {
                 {postsLoading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                    <p className="mt-2 text-gray-600">Loading content...</p>
+                    <p className="mt-2 text-gray-600 text-sm">Loading content...</p>
                   </div>
                 ) : posts.length === 0 ? (
                   <div className="text-center py-8">
-                    <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No content shared yet</p>
-                    <p className="text-sm text-gray-500 mt-2">
+                    <Camera className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 text-sm sm:text-base">No content shared yet</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-2">
                       Content will appear here when guests start sharing photos and posts
                     </p>
                   </div>
@@ -447,12 +446,12 @@ export default function AdminEventView() {
                       <div key={post.id} className="border rounded-lg overflow-hidden">
                         {/* Post Header */}
                         <div className="p-4 border-b">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-semibold">{post.guest.name}</h4>
-                              <p className="text-sm text-gray-600">{post.guest.email}</p>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <h4 className="font-semibold text-sm sm:text-base">{post.guest.name}</h4>
+                              <p className="text-xs sm:text-sm text-gray-600 truncate">{post.guest.email}</p>
                             </div>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm text-gray-500">
                               {formatDate(post.createdAt)}
                             </p>
                           </div>
@@ -461,7 +460,7 @@ export default function AdminEventView() {
                         {/* Post Content */}
                         <div className="p-4">
                           {post.content && (
-                            <p className="text-gray-900 mb-3">{post.content}</p>
+                            <p className="text-gray-900 mb-3 text-sm sm:text-base">{post.content}</p>
                           )}
                           
                           {post.image_url && (
@@ -485,7 +484,7 @@ export default function AdminEventView() {
                           )}
 
                           {/* Post Stats */}
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-4 text-xs sm:text-sm text-gray-600">
                             <div className="flex items-center">
                               <ThumbsUp className="h-4 w-4 mr-1" />
                               {post.likes_count} likes
@@ -506,9 +505,9 @@ export default function AdminEventView() {
         </Tabs>
 
         {/* Actions */}
-        <div className="flex gap-4 mt-8">
-          <Link href={`/admin/events/${eventData.id}/manage`}>
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-4 mt-8">
+          <Link href={`/admin/events/${eventData.id}/manage`} className="w-full sm:w-auto">
+            <Button className="w-full text-sm">
               Manage Event
             </Button>
           </Link>

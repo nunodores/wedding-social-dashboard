@@ -172,7 +172,7 @@ export default function CoupleGuests() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
           <Users className="h-8 w-8 animate-pulse mx-auto mb-4 text-purple-600" />
           <p>Loading guests...</p>
@@ -185,42 +185,46 @@ export default function CoupleGuests() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="wedding-gradient text-white">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+        <div className="container mx-auto px-4 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center w-full sm:w-auto">
               <Link href="/couple/dashboard" className="mr-4">
-                <Button variant="outline" className="border-white text-white hover:bg-white/10" size="sm">
+                <Button 
+                  variant="outline" 
+                  className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white hover:border-white/50" 
+                  size="sm"
+                >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
               </Link>
-              <Heart className="h-8 w-8 mr-3" />
-              <div>
-                <h1 className="text-2xl font-bold font-playfair">Guest Management</h1>
-                <p className="text-white/80">Import and manage your wedding guests</p>
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 mr-3 flex-shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold font-playfair">Guest Management</h1>
+                <p className="text-white/80 text-sm sm:text-base">Import and manage your wedding guests</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Import Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 sm:mb-8">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-base sm:text-lg">
                 <Upload className="h-5 w-5 mr-2" />
                 Import Guest List
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 Upload an Excel or CSV file with your guest information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center">
+                <FileSpreadsheet className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-sm sm:text-base text-gray-600 mb-4">
                   Upload your guest list file (Excel or CSV)
                 </p>
                 <input
@@ -232,7 +236,7 @@ export default function CoupleGuests() {
                   disabled={uploading}
                 />
                 <label htmlFor="file-upload">
-                  <Button asChild disabled={uploading}>
+                  <Button asChild disabled={uploading} className="text-sm bg-purple-600 hover:bg-purple-700 text-white">
                     <span>
                       {uploading ? 'Uploading...' : 'Choose File'}
                     </span>
@@ -242,7 +246,7 @@ export default function CoupleGuests() {
               <Button 
                 variant="outline" 
                 onClick={downloadTemplate}
-                className="w-full"
+                className="w-full text-sm border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download Template
@@ -252,27 +256,27 @@ export default function CoupleGuests() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Template Format</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-base sm:text-lg">Template Format</CardTitle>
+              <CardDescription className="text-sm">
                 Your Excel/CSV file should include these columns
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded text-sm">
                   <span className="font-medium">Name</span>
-                  <span className="text-sm text-gray-600">Required</span>
+                  <span className="text-gray-600">Required</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded text-sm">
                   <span className="font-medium">Email</span>
-                  <span className="text-sm text-gray-600">Required</span>
+                  <span className="text-gray-600">Required</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded text-sm">
                   <span className="font-medium">Phone</span>
-                  <span className="text-sm text-gray-600">Optional</span>
+                  <span className="text-gray-600">Optional</span>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mt-4">
+              <p className="text-xs sm:text-sm text-gray-600 mt-4">
                 Each guest will receive unique login credentials via email with the wedding password you provide.
               </p>
             </CardContent>
@@ -282,13 +286,13 @@ export default function CoupleGuests() {
         {/* Guest List */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center text-base sm:text-lg">
                   <Users className="h-5 w-5 mr-2" />
                   Guest List ({guests.length})
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Manage your imported guests and send invitations
                 </CardDescription>
               </div>
@@ -296,6 +300,7 @@ export default function CoupleGuests() {
                 <Button 
                   onClick={() => openPasswordModal()}
                   disabled={sendingInvites}
+                  className="w-full sm:w-auto text-sm bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   <Mail className="h-4 w-4 mr-2" />
                   Send All Invitations
@@ -305,13 +310,17 @@ export default function CoupleGuests() {
           </CardHeader>
           <CardContent>
             {guests.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No guests imported yet</h3>
-                <p className="text-gray-600 mb-4">
+              <div className="text-center py-8 sm:py-12">
+                <Users className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold mb-2">No guests imported yet</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">
                   Upload your guest list to get started
                 </p>
-                <Button onClick={downloadTemplate} variant="outline">
+                <Button 
+                  onClick={downloadTemplate} 
+                  variant="outline" 
+                  className="text-sm border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Download Template
                 </Button>
@@ -319,28 +328,29 @@ export default function CoupleGuests() {
             ) : (
               <div className="space-y-4">
                 {guests.map((guest) => (
-                  <div key={guest.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h4 className="font-semibold">{guest.name}</h4>
+                  <div key={guest.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+                        <h4 className="font-semibold text-sm sm:text-base truncate">{guest.name}</h4>
                         <Badge className={getStatusColor(guest.status)}>
                           {guest.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600">{guest.email}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">{guest.email}</p>
                       {guest.phone && (
-                        <p className="text-sm text-gray-500">{guest.phone}</p>
+                        <p className="text-xs sm:text-sm text-gray-500">{guest.phone}</p>
                       )}
                       <p className="text-xs text-gray-500">
                         Username: {guest.username}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full sm:w-auto">
                       <Button 
                         size="sm" 
                         variant="outline"
                         onClick={() => openPasswordModal([guest.id])}
                         disabled={sendingInvites}
+                        className="flex-1 sm:flex-none text-xs sm:text-sm border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
                         <Send className="h-4 w-4 mr-1" />
                         Send Invite
@@ -362,14 +372,14 @@ export default function CoupleGuests() {
       >
         <div className="space-y-4">
           <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-            <Lock className="h-5 w-5 text-blue-600" />
+            <Lock className="h-5 w-5 text-blue-600 flex-shrink-0" />
             <p className="text-sm text-blue-800">
               This password will be included in the invitation emails for guests to access your wedding platform.
             </p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="wedding-password">Wedding Password</Label>
+            <Label htmlFor="wedding-password" className="text-sm">Wedding Password</Label>
             <div className="relative">
               <Input
                 id="wedding-password"
@@ -377,7 +387,7 @@ export default function CoupleGuests() {
                 placeholder="Enter the password for your wedding"
                 value={weddingPassword}
                 onChange={(e) => setWeddingPassword(e.target.value)}
-                className="pr-10"
+                className="pr-10 text-sm"
               />
               <Button
                 type="button"
@@ -403,18 +413,18 @@ export default function CoupleGuests() {
             )}
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button
               variant="outline"
               onClick={closePasswordModal}
-              className="flex-1"
+              className="flex-1 text-sm border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </Button>
             <Button
               onClick={sendInvitations}
               disabled={sendingInvites || !weddingPassword.trim()}
-              className="flex-1"
+              className="flex-1 text-sm bg-purple-600 hover:bg-purple-700 text-white"
             >
               {sendingInvites ? (
                 'Sending...'

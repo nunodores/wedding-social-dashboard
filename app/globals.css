@@ -100,4 +100,22 @@
   .font-inter {
     font-family: var(--font-inter);
   }
+
+  /* Fix button visibility issues */
+  .wedding-gradient .btn-outline {
+    @apply border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white;
+  }
+
+  .wedding-gradient .btn-outline:hover {
+    @apply bg-white/20 text-white border-white/50;
+  }
+
+  /* Ensure proper contrast for buttons on gradient backgrounds */
+  .wedding-gradient button[variant="outline"] {
+    @apply border-white/30 text-white bg-white/10;
+  }
+
+  .wedding-gradient button[variant="outline"]:hover {
+    @apply bg-white/20 text-white border-white/50;
+  }
 }

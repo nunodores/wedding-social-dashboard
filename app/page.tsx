@@ -87,16 +87,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen wedding-gradient">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Hero Section */}
-        <div className="text-center mb-16 pt-16">
-          <div className="flex items-center justify-center mb-6">
-            <Heart className="h-12 w-12 text-white mr-4" />
-            <h1 className="font-playfair text-6xl font-bold text-white">
+        <div className="text-center mb-12 sm:mb-16 pt-8 sm:pt-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center mb-4 sm:mb-6">
+            <Heart className="h-8 w-8 sm:h-12 sm:w-12 text-white mb-2 sm:mb-0 sm:mr-4" />
+            <h1 className="font-playfair text-4xl sm:text-5xl lg:text-6xl font-bold text-white text-center sm:text-left">
               Wedding Events
             </h1>
           </div>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
             Manage your wedding events and create beautiful memories together.
           </p>
         </div>
@@ -104,29 +104,29 @@ export default function Home() {
         {/* Login Forms */}
         <div className="max-w-md mx-auto">
           <Card className="wedding-card">
-            <CardHeader className="text-center">
-              <CardTitle className="font-playfair text-2xl">Access Platform</CardTitle>
-              <CardDescription>
+            <CardHeader className="text-center px-4 sm:px-6">
+              <CardTitle className="font-playfair text-xl sm:text-2xl">Access Platform</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Choose your access level and sign in
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <Tabs defaultValue="couple" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="couple">Wedding</TabsTrigger>
-                  <TabsTrigger value="admin">Admin</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="couple" className="text-sm">Wedding</TabsTrigger>
+                  <TabsTrigger value="admin" className="text-sm">Admin</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="couple" className="space-y-4">
                   <div className="text-center py-2">
-                    <Heart className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-                    <h3 className="font-semibold text-lg mb-1">Couple Access</h3>
-                    <p className="text-gray-600 text-sm mb-4">Access your wedding dashboard</p>
+                    <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mx-auto mb-3" />
+                    <h3 className="font-semibold text-base sm:text-lg mb-1">Couple Access</h3>
+                    <p className="text-gray-600 text-xs sm:text-sm mb-4">Access your wedding dashboard</p>
                   </div>
                   
                   <form onSubmit={handleCoupleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="eventCode">Event Code</Label>
+                      <Label htmlFor="eventCode" className="text-sm">Event Code</Label>
                       <Input
                         id="eventCode"
                         type="text"
@@ -136,11 +136,12 @@ export default function Home() {
                           ...prev, 
                           eventCode: e.target.value.toUpperCase() 
                         }))}
+                        className="text-sm sm:text-base"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="couplePassword">Password</Label>
+                      <Label htmlFor="couplePassword" className="text-sm">Password</Label>
                       <Input
                         id="couplePassword"
                         type="password"
@@ -150,10 +151,15 @@ export default function Home() {
                           ...prev, 
                           password: e.target.value 
                         }))}
+                        className="text-sm sm:text-base"
                         required
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={coupleForm.loading}>
+                    <Button 
+                      type="submit" 
+                      className="w-full text-sm sm:text-base py-2 sm:py-3" 
+                      disabled={coupleForm.loading}
+                    >
                       {coupleForm.loading ? 'Signing in...' : 'Sign In to Wedding Dashboard'}
                     </Button>
                   </form>
@@ -161,14 +167,14 @@ export default function Home() {
                 
                 <TabsContent value="admin" className="space-y-4">
                   <div className="text-center py-2">
-                    <Shield className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-                    <h3 className="font-semibold text-lg mb-1">Admin Access</h3>
-                    <p className="text-gray-600 text-sm mb-4">Platform administration</p>
+                    <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 mx-auto mb-3" />
+                    <h3 className="font-semibold text-base sm:text-lg mb-1">Admin Access</h3>
+                    <p className="text-gray-600 text-xs sm:text-sm mb-4">Platform administration</p>
                   </div>
                   
                   <form onSubmit={handleAdminLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="adminEmail">Email</Label>
+                      <Label htmlFor="adminEmail" className="text-sm">Email</Label>
                       <Input
                         id="adminEmail"
                         type="email"
@@ -178,11 +184,12 @@ export default function Home() {
                           ...prev, 
                           email: e.target.value 
                         }))}
+                        className="text-sm sm:text-base"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="adminPassword">Password</Label>
+                      <Label htmlFor="adminPassword" className="text-sm">Password</Label>
                       <Input
                         id="adminPassword"
                         type="password"
@@ -192,13 +199,14 @@ export default function Home() {
                           ...prev, 
                           password: e.target.value 
                         }))}
+                        className="text-sm sm:text-base"
                         required
                       />
                     </div>
                     <Button 
                       type="submit" 
                       variant="outline" 
-                      className="w-full" 
+                      className="w-full text-sm sm:text-base py-2 sm:py-3" 
                       disabled={adminForm.loading}
                     >
                       {adminForm.loading ? 'Signing in...' : 'Sign In to Admin Panel'}
