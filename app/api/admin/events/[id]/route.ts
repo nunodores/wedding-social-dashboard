@@ -21,13 +21,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const event = await EventService.getEventById(params.id);
+    const eventObj = await EventService.getEventById(params.id);
 
-    if (!event) {
+    if (!eventObj) {
       return NextResponse.json({ message: 'Event not found' }, { status: 404 });
     }
-    const eventAllData = await EventService.addMoreDataToEventObj(event);
-    return NextResponse.json({ eventAllData });
+    const event = await EventService.addMoreDataToEventObj(eventObj);
+    return NextResponse.json({ event });
   } catch (error) {
     console.error('Admin event fetch error:', error);
     return NextResponse.json({ message: 'Failed to fetch event' }, { status: 500 });
