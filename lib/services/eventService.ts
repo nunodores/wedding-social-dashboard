@@ -45,18 +45,23 @@ export class EventService {
 
     return eventsWithCounts;
   }
-
-  static async getEventById(id: string): Promise<any | null> {
-    const event = await Event.findByPk(id, {
+  static async getEventById(id: string): Promise<Event | null> {
+    return await Event.findByPk(id, {
       include: [
         {
           model: User,
           attributes: ['email'],
         },
+        {
+          model: Guest,
+        },
+        {
+          model: Post,
+        },
       ],
     });
-
-    if (!event) return null;
+  }
+  static async addMoreDataToEventObj(event: Event): Promise<any | null> {
 
     // Calculate counts for this specific event
     const [guestCount, postCount, photoCount] = await Promise.all([

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { initializeDatabase } from '@/lib/db-init';
+import { Event } from '@/lib/model/models';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { Event } = require('@/lib/model/models');
     const event = await Event.findByPk(params.id);
     
     if (!event) {

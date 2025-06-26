@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { initializeDatabase } from '@/lib/db-init';
+import { Event } from '@/lib/model/models';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,6 @@ export async function PUT(request: NextRequest) {
 
     const { name, event_date, description } = await request.json();
 
-    const { Event } = require('@/lib/model/models');
     const event = await Event.findByPk(user.event_id);
     
     if (!event) {

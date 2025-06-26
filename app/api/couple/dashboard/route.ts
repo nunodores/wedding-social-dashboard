@@ -22,10 +22,11 @@ export async function GET(request: NextRequest) {
     }
 
     const event = await EventService.getEventById(user.event_id!);
-
     if (!event) {
       return NextResponse.json({ message: 'Event not found' }, { status: 404 });
     }
+    const eventAllData = await EventService.addMoreDataToEventObj(event);
+
 
     // Return the event with calculated counts
     const transformedEvent = {
@@ -36,9 +37,9 @@ export async function GET(request: NextRequest) {
       logo_url: event.logo_url,
       font_name: event.font_name,
       use_logo_text: event.use_logo_text,
-      guest_count: event.guest_count,
-      photos_count: event.photos_count,
-      posts_count: event.posts_count,
+      guest_count: eventAllData.guest_count,
+      photos_count: eventAllData.photos_count,
+      posts_count: eventAllData.posts_count,
       event_date: event.event_date
     };
 

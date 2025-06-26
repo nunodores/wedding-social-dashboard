@@ -37,7 +37,6 @@ export async function PUT(request: NextRequest) {
       use_logo_text: use_text_logo,
       font_name
     };
-        
     await event.update(updateData);
 
     return NextResponse.json({ message: 'Customization saved successfully' });
