@@ -24,26 +24,28 @@ export async function POST(request: NextRequest) {
     }
 
     const { guestIds, password } = await request.json();
-    console.log(guestIds, password)
+    
     if (!password) {
       return NextResponse.json({ message: 'Wedding password is required' }, { status: 400 });
     }
 
-    // Get event info
-    const event = await EventService.getEventById(user.event_id!);
-    if (!event) {
-      return NextResponse.json({ message: 'Event not found' }, { status: 404 });
+    // Get the couple's event
+    const events = await EventService.getEventsByUserId(user.id);
+    if (events.length === 0) {
+      return NextResponse.json({ message: 'No event found for this couple' }, { status: 404 });
     }
+
+    const event = events[0]; // Use the first event
 
     // Get guests
     let guests;
     if (guestIds && guestIds.length > 0) {
       // Send to specific guests
-      guests = await GuestService.getGuestsByEventId(user.event_id!);
+      guests = await GuestService.getGuestsByEventId(event.id);
       guests = guests.filter(g => guestIds.includes(g.id));
     } else {
       // Send to all guests
-      guests = await GuestService.getGuestsByEventId(user.event_id!);
+      guests = await GuestService.getGuestsByEventId(event.id);
     }
 
     let sent = 0;
@@ -58,7 +60,6 @@ export async function POST(request: NextRequest) {
           event.name,
           event.event_code
         );
-        console.log(emailTemplate);
         
         await sendEmail(emailTemplate);
         sent++;

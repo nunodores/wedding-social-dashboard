@@ -21,12 +21,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const event = await EventService.getEventById(user.event_id!);
-    if (!event) {
-      return NextResponse.json({ message: 'Event not found' }, { status: 404 });
+    // Get events for this couple
+    const events = await EventService.getEventsByUserId(user.id);
+    
+    if (events.length === 0) {
+      // No events found - couple needs to create their first event
+      return NextResponse.json({ 
+        hasEvent: false,
+        message: 'No events found. Please create your first event.'
+      });
     }
-    const eventAllData = await EventService.addMoreDataToEventObj(event);
 
+    // For now, we'll use the first event (couples typically have one main event)
+    const event = events[0];
+    const eventAllData = await EventService.addMoreDataToEventObj(event);
 
     // Return the event with calculated counts
     const transformedEvent = {
@@ -40,10 +48,14 @@ export async function GET(request: NextRequest) {
       guest_count: eventAllData.guest_count,
       photos_count: eventAllData.photos_count,
       posts_count: eventAllData.posts_count,
-      event_date: event.event_date
+      event_date: event.event_date,
+      description: event.description,
     };
 
-    return NextResponse.json({ event: transformedEvent });
+    return NextResponse.json({ 
+      hasEvent: true,
+      event: transformedEvent 
+    });
   } catch (error) {
     console.error('Couple dashboard error:', error);
     return NextResponse.json({ message: 'Failed to fetch dashboard' }, { status: 500 });

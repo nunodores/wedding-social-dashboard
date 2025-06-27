@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { GuestService } from '@/lib/services/guestService';
+import { EventService } from '@/lib/services/eventService';
 import { initializeDatabase } from '@/lib/db-init';
 
 export const dynamic = 'force-dynamic';
@@ -20,9 +21,15 @@ export async function POST(request: NextRequest) {
     if (!user || user.role !== 'couple') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
-    console.log('====================================');
-    console.log(user);
-    console.log('====================================');
+
+    // Get the couple's event
+    const events = await EventService.getEventsByUserId(user.id);
+    if (events.length === 0) {
+      return NextResponse.json({ message: 'No event found for this couple' }, { status: 404 });
+    }
+
+    const event = events[0]; // Use the first event
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -52,11 +59,8 @@ export async function POST(request: NextRequest) {
     const errors: string[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-
       const values = lines[i].split(',').map(v => v.trim());
-      console.log('====================================');
-      console.log(values);
-      console.log('====================================');
+      
       if (values.length < Math.max(nameIndex, emailIndex) + 1) {
         continue;
       }
@@ -76,22 +80,16 @@ export async function POST(request: NextRequest) {
 
         const guest = await GuestService.createGuest({
           id: crypto.randomUUID(),
-          wedding_event_id: user.event_id!,
+          wedding_event_id: event.id,
           name,
           email,
           phone,
           password,
         });
-          console.log('====================================');
-          console.log("guest.dataValues");
 
-          console.log(guest.dataValues);
-          console.log('====================================');
         imported++;
       } catch (error) {
-        console.log('====================================');
-        console.log(error);
-        console.log('====================================');
+        console.log('Guest creation error:', error);
         errors.push(`Row ${i + 1}: Failed to create guest`);
       }
     }

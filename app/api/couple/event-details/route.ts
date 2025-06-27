@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
+import { EventService } from '@/lib/services/eventService';
 import { initializeDatabase } from '@/lib/db-init';
-import { Event } from '@/lib/model/models';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,11 +23,13 @@ export async function PUT(request: NextRequest) {
 
     const { name, event_date, description } = await request.json();
 
-    const event = await Event.findByPk(user.event_id);
-    
-    if (!event) {
-      return NextResponse.json({ message: 'Event not found' }, { status: 404 });
+    // Get the couple's event
+    const events = await EventService.getEventsByUserId(user.id);
+    if (events.length === 0) {
+      return NextResponse.json({ message: 'No event found for this couple' }, { status: 404 });
     }
+
+    const event = events[0]; // Use the first event
 
     // Update event details
     await event.update({

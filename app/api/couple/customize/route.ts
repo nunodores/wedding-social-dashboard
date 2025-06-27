@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { EventService } from '@/lib/services/eventService';
 import { initializeDatabase } from '@/lib/db-init';
-import { use } from 'react';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,10 +23,13 @@ export async function PUT(request: NextRequest) {
 
     const { primary_color, logo_text, font_name, use_text_logo, logo_url } = await request.json();
 
-    const event = await EventService.getEventById(user.event_id!);
-    if (!event) {
-      return NextResponse.json({ message: 'Event not found' }, { status: 404 });
+    // Get the couple's event
+    const events = await EventService.getEventsByUserId(user.id);
+    if (events.length === 0) {
+      return NextResponse.json({ message: 'No event found for this couple' }, { status: 404 });
     }
+
+    const event = events[0]; // Use the first event
 
     // Update event customization
     const updateData: any = { 

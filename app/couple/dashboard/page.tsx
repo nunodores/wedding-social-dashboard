@@ -26,7 +26,9 @@ import {
   Calendar,
   Edit,
   Save,
-  X
+  X,
+  Plus,
+  Sparkles
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -45,8 +47,14 @@ interface EventData {
   posts_count: number;
 }
 
+interface DashboardResponse {
+  hasEvent: boolean;
+  event?: EventData;
+  message?: string;
+}
+
 export default function CoupleDashboard() {
-  const [eventData, setEventData] = useState<EventData | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -62,10 +70,10 @@ export default function CoupleDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    fetchEventData();
+    fetchDashboardData();
   }, []);
 
-  const fetchEventData = async () => {
+  const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('auth-token');
       const response = await fetch('/api/couple/dashboard', {
@@ -74,15 +82,18 @@ export default function CoupleDashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        setEventData(data.event);
-        setEditForm({
-          name: data.event.name || '',
-          event_date: data.event.event_date || '',
-          description: data.event.description || '',
-        });
+        setDashboardData(data);
+        
+        if (data.hasEvent && data.event) {
+          setEditForm({
+            name: data.event.name || '',
+            event_date: data.event.event_date || '',
+            description: data.event.description || '',
+          });
+        }
       }
     } catch (error) {
-      console.error('Failed to fetch event data:', error);
+      console.error('Failed to fetch dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -105,11 +116,13 @@ export default function CoupleDashboard() {
   };
 
   const openEditModal = () => {
-    setEditForm({
-      name: eventData?.name || '',
-      event_date: eventData?.event_date || '',
-      description: eventData?.description || '',
-    });
+    if (dashboardData?.event) {
+      setEditForm({
+        name: dashboardData.event.name || '',
+        event_date: dashboardData.event.event_date || '',
+        description: dashboardData.event.description || '',
+      });
+    }
     setShowEditModal(true);
   };
 
@@ -134,7 +147,7 @@ export default function CoupleDashboard() {
       if (response.ok) {
         toast.success('Event details updated successfully');
         closeEditModal();
-        fetchEventData(); // Refresh data
+        fetchDashboardData(); // Refresh data
       } else {
         toast.error('Failed to update event details');
       }
@@ -169,7 +182,7 @@ export default function CoupleDashboard() {
         const data = await response.json();
         toast.success(`Invitations sent to ${data.sent} guests`);
         closePasswordModal();
-        fetchEventData(); // Refresh data
+        fetchDashboardData(); // Refresh data
       } else {
         const error = await response.json();
         toast.error(error.message || 'Failed to send invitations');
@@ -198,6 +211,109 @@ export default function CoupleDashboard() {
       </div>
     );
   }
+
+  // No Event State - Show Create Event Flow
+  if (!dashboardData?.hasEvent) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="wedding-gradient text-white">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Heart className="h-8 w-8" />
+                <div>
+                  <h1 className="text-2xl font-bold font-playfair">Welcome to Your Wedding Platform</h1>
+                  <p className="text-white/80">Let's create your first wedding event</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white hover:border-white/50" 
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Welcome Card */}
+            <Card className="mb-8">
+              <CardContent className="p-8 text-center">
+                <div className="flex items-center justify-center mb-6">
+                  <Sparkles className="h-12 w-12 text-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold mb-4">Create Your Wedding Event</h2>
+                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                  Welcome! It looks like you haven't created your wedding event yet. 
+                  Let's get started by setting up your personalized wedding platform where 
+                  you can manage guests, customize the experience, and collect beautiful memories.
+                </p>
+                <Link href="/couple/create-event">
+                  <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
+                    <Plus className="h-5 w-5 mr-2" />
+                    Create Your Wedding Event
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Features Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <Users className="h-5 w-5 mr-2 text-blue-600" />
+                    Guest Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600">
+                    Import guest lists, send invitations, and manage RSVPs all in one place.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <Palette className="h-5 w-5 mr-2 text-purple-600" />
+                    Custom Branding
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600">
+                    Personalize colors, fonts, and logos to match your wedding theme perfectly.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <Camera className="h-5 w-5 mr-2 text-green-600" />
+                    Photo Sharing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600">
+                    Guests can share photos and memories in real-time during your celebration.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Existing Event Dashboard
+  const eventData = dashboardData.event!;
 
   return (
     <div className="min-h-screen bg-gray-50">

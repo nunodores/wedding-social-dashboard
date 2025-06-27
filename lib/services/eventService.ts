@@ -45,6 +45,7 @@ export class EventService {
 
     return eventsWithCounts;
   }
+  
   static async getEventById(id: string): Promise<Event | null> {
     return await Event.findByPk(id, {
       include: [
@@ -61,8 +62,8 @@ export class EventService {
       ],
     });
   }
+  
   static async addMoreDataToEventObj(event: Event): Promise<any | null> {
-
     // Calculate counts for this specific event
     const [guestCount, postCount, photoCount] = await Promise.all([
       Guest.count({ where: { wedding_event_id: event.id } }),
@@ -105,35 +106,18 @@ export class EventService {
     });
   }
 
-  static async getEventsByUserId(userId: number): Promise<any[]> {
+  static async getEventsByUserId(userId: number): Promise<Event[]> {
     const events = await Event.findAll({
       where: { couple_user_id: userId },
+      include: [
+        {
+          model: User,
+          attributes: ['email'],
+        },
+      ],
     });
 
-    // Calculate counts for each event
-    const eventsWithCounts = await Promise.all(
-      events.map(async (event) => {
-        const [guestCount, postCount, photoCount] = await Promise.all([
-          Guest.count({ where: { wedding_event_id: event.id } }),
-          Post.count({ where: { wedding_event_id: event.id } }),
-          Post.count({ 
-            where: { 
-              wedding_event_id: event.id,
-              image_url: { [require('sequelize').Op.ne]: null }
-            }
-          })
-        ]);
-
-        return {
-          ...event.dataValues,
-          guest_count: guestCount,
-          photos_count: photoCount,
-          posts_count: postCount,
-        };
-      })
-    );
-
-    return eventsWithCounts;
+    return events;
   }
 
   static async createEvent(eventData: {

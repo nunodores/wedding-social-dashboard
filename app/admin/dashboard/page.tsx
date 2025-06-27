@@ -36,7 +36,7 @@ interface Event {
   posts_count: number;
 }
 
-type EventFilter = 'all' | 'past' | 'active' | 'future';
+type EventFilter = 'all' | 'past' | 'active';
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -98,13 +98,6 @@ export default function AdminDashboard() {
           if (!event.event_date) return event.status === 'active';
           const eventDate = new Date(event.event_date);
           return eventDate.getTime() === today.getTime() || event.status === 'active';
-        });
-        break;
-      case 'future':
-        filtered = events.filter(event => {
-          if (!event.event_date) return false;
-          const eventDate = new Date(event.event_date);
-          return eventDate > today;
         });
         break;
       default:
@@ -181,7 +174,7 @@ export default function AdminDashboard() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const eventDate = new Date(event.event_date);
-    
+
     if (eventDate < today) {
       return 'Past Event';
     } else if (eventDate.getTime() === today.getTime()) {
@@ -328,15 +321,7 @@ export default function AdminDashboard() {
                     <AlertCircle className="h-3 w-3 mr-1" />
                     Active ({activeCount})
                   </Button>
-                  <Button
-                    variant={activeFilter === 'future' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setActiveFilter('future')}
-                    className="text-xs sm:text-sm"
-                  >
-                    <Clock className="h-3 w-3 mr-1" />
-                    Future ({futureCount})
-                  </Button>
+                 
                 </div>
               </div>
             </div>

@@ -10,13 +10,21 @@ export async function POST(request: NextRequest) {
   try {
     await initializeDatabase();
     
-    const { email, password } = await request.json();
+    const { email, password, name } = await request.json();
 
-    const user = await UserService.findByCredentials(email, password, UserRole.COUPLE);
-    
-    if (!user) {
-      return NextResponse.json({ message: 'Invalid email or password' }, { status: 401 });
+    // Check if user already exists
+    const existingUser = await UserService.findByEmail(email);
+    if (existingUser) {
+      return NextResponse.json({ message: 'An account with this email already exists' }, { status: 400 });
     }
+
+    // Create new couple user
+    const user = await UserService.createUser({
+      email,
+      password,
+      role: UserRole.COUPLE,
+      name,
+    });
 
     const token = generateToken({
       id: user.id,
@@ -31,10 +39,11 @@ export async function POST(request: NextRequest) {
         email: user.email, 
         role: user.role,
         name: user.name
-      } 
+      },
+      message: 'Account created successfully'
     });
   } catch (error) {
-    console.error('Couple login error:', error);
-    return NextResponse.json({ message: 'Login failed' }, { status: 500 });
+    console.error('Couple registration error:', error);
+    return NextResponse.json({ message: 'Registration failed' }, { status: 500 });
   }
 }

@@ -7,14 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Heart, Shield } from 'lucide-react';
+import { Eye, EyeOff, Heart, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Home() {
-  const [coupleForm, setCoupleForm] = useState({
-    eventCode: '',
+  const [loginForm, setLoginForm] = useState({
+    email: '',
     password: '',
     loading: false,
+    showPassword: false,
   });
   
   const [adminForm, setAdminForm] = useState({
@@ -25,17 +26,47 @@ export default function Home() {
 
   const router = useRouter();
 
-  const handleCoupleLogin = async (e: React.FormEvent) => {
+  // const handleCoupleLogin = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setCoupleForm(prev => ({ ...prev, loading: true }));
+
+  //   try {
+  //     const response = await fetch('/api/auth/couple-login', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ 
+  //         eventCode: coupleForm.eventCode, 
+  //         password: coupleForm.password 
+  //       }),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       localStorage.setItem('auth-token', data.token);
+  //       toast.success('Login successful!');
+  //       router.push('/couple/dashboard');
+  //     } else {
+  //       toast.error(data.message || 'Invalid credentials');
+  //     }
+  //   } catch (error) {
+  //     toast.error('Login failed. Please try again.');
+  //   } finally {
+  //     setCoupleForm(prev => ({ ...prev, loading: false }));
+  //   }
+  // };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCoupleForm(prev => ({ ...prev, loading: true }));
+    setLoginForm(prev => ({ ...prev, loading: true }));
 
     try {
       const response = await fetch('/api/auth/couple-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          eventCode: coupleForm.eventCode, 
-          password: coupleForm.password 
+          email: loginForm.email, 
+          password: loginForm.password 
         }),
       });
 
@@ -51,8 +82,14 @@ export default function Home() {
     } catch (error) {
       toast.error('Login failed. Please try again.');
     } finally {
-      setCoupleForm(prev => ({ ...prev, loading: false }));
+      setLoginForm(prev => ({ ...prev, loading: false }));
     }
+  };
+  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoginForm(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -124,45 +161,51 @@ export default function Home() {
                     <p className="text-gray-600 text-xs sm:text-sm mb-4">Access your wedding dashboard</p>
                   </div>
                   
-                  <form onSubmit={handleCoupleLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="eventCode" className="text-sm">Event Code</Label>
-                      <Input
-                        id="eventCode"
-                        type="text"
-                        placeholder="Enter your event code"
-                        value={coupleForm.eventCode}
-                        onChange={(e) => setCoupleForm(prev => ({ 
-                          ...prev, 
-                          eventCode: e.target.value.toUpperCase() 
-                        }))}
-                        className="text-sm sm:text-base"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="couplePassword" className="text-sm">Password</Label>
-                      <Input
-                        id="couplePassword"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={coupleForm.password}
-                        onChange={(e) => setCoupleForm(prev => ({ 
-                          ...prev, 
-                          password: e.target.value 
-                        }))}
-                        className="text-sm sm:text-base"
-                        required
-                      />
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full text-sm sm:text-base py-2 sm:py-3" 
-                      disabled={coupleForm.loading}
+                  <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <Input
+                    id="login-email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={loginForm.email}
+                    onChange={handleLoginChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      name="password"
+                      type={loginForm.showPassword ? 'text' : 'password'}
+                      placeholder="Enter your password"
+                      value={loginForm.password}
+                      onChange={handleLoginChange}
+                      className="pr-10"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setLoginForm(prev => ({ ...prev, showPassword: !prev.showPassword }))}
                     >
-                      {coupleForm.loading ? 'Signing in...' : 'Sign In to Wedding Dashboard'}
+                      {loginForm.showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
                     </Button>
-                  </form>
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={loginForm.loading}>
+                  {loginForm.loading ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </form>
                 </TabsContent>
                 
                 <TabsContent value="admin" className="space-y-4">
